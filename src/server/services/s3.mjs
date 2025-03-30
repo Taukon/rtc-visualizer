@@ -1,16 +1,28 @@
 import AWS from 'aws-sdk'
 import log from '../logger.mjs'
+import { config } from 'dotenv'
+
+config()
 
 const {
-  AWS_REGION: region,
-  RTCSTATS_S3_BUCKET
+  RTCSTATS_S3_BUCKET,
+  AWS_REGION,
+  LOCALSTACK_ENDPOINT
 } = process.env
 
-const config = {
-  region
+let configParam = {
+    region: AWS_REGION
 }
 
-AWS.config.update(config)
+if (typeof LOCALSTACK_ENDPOINT === "string" ) {
+    configParam = {
+        endpoint: LOCALSTACK_ENDPOINT,
+        s3ForcePathStyle: true,
+        ...configParam
+    }
+}
+
+AWS.config.update(configParam)
 
 const s3 = new AWS.S3()
 

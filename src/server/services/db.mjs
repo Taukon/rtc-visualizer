@@ -1,10 +1,30 @@
 import dynamoose from 'dynamoose'
 import logger from '../logger.mjs'
+import { config } from 'dotenv'
+
+config()
 
 const {
   RTCSTATS_METADATA_TABLE,
-  ENDPOINT
+  ENDPOINT,
+  AWS_REGION,
+  LOCALSTACK_ENDPOINT
 } = process.env
+
+let configParam = {
+  region: AWS_REGION
+}
+
+if (typeof LOCALSTACK_ENDPOINT === "string" ) {
+    configParam = {
+        endpoint: LOCALSTACK_ENDPOINT,
+        s3ForcePathStyle: true,
+        ...configParam
+    }
+}
+
+// Set region to avoid aws config error
+dynamoose.aws.sdk.config.update(configParam)
 
 // used for working with local data
 if (ENDPOINT) {
