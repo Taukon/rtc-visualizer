@@ -8,13 +8,23 @@ config()
 
 const {
   RTCSTATS_METADATA_TABLE,
-  AWS_REGION
+  AWS_REGION,
+  LOCALSTACK_ENDPOINT
 } = process.env
 
-AWS.config.update({
-  region: AWS_REGION,
-  endpoint: 'http://localhost:8000'
-})
+let configParam = {
+    region: AWS_REGION
+}
+
+if (typeof LOCALSTACK_ENDPOINT === "string" ) {
+    configParam = {
+        endpoint: LOCALSTACK_ENDPOINT,
+        s3ForcePathStyle: true,
+        ...configParam
+    }
+}
+
+AWS.config.update(configParam)
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
