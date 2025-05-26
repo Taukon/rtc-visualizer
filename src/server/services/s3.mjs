@@ -2,6 +2,7 @@ import AWS from 'aws-sdk'
 import log from '../logger.mjs'
 
 const {
+  RTCSTATS_S3_ENDPOINT: endpoint,
   AWS_REGION: region,
   RTCSTATS_S3_BUCKET
 } = process.env
@@ -12,7 +13,9 @@ const config = {
 
 AWS.config.update(config)
 
-const s3 = new AWS.S3()
+// Use endpoint for local S3 (e.g., MinIO or LocalStack).
+// Falls back to default AWS S3 if no endpoint is specified.
+const s3 = new AWS.S3(endpoint ? {endpoint} : {})
 
 export const fileExists = async Key => {
   const obj = { Bucket: RTCSTATS_S3_BUCKET, Key }
