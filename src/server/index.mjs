@@ -1,5 +1,7 @@
 import path from 'path'
 import express from 'express'
+import https from 'https'
+import fs from 'fs'
 
 import './config.mjs'
 import log, { expressLog } from './logger.mjs'
@@ -12,7 +14,12 @@ import versionRoute from './routes/version.mjs'
 import basicAuth from './basic-auth.mjs'
 import jwtAuth from './jwt-auth.mjs'
 
-const { APP_PORT } = process.env
+const { 
+  APP_PORT, 
+  RTCSTATS_HTTPS: useHTTPS, 
+  RTCSTATS_KEYPATH: keyPath, 
+  RTCSTATS_CERTPATH: certPath
+} = process.env
 
 const app = express()
 
@@ -39,6 +46,21 @@ app.use('/search', searchRoutes)
 app.use('/download', downloadRoutes)
 app.use('/version', versionRoute)
 
-app.listen(APP_PORT, () => {
-  log.info('App started on port: %s', APP_PORT)
-})
+if (useHTTPS) {
+  if (!keyPath || !certPath) {
+    throw new Error('Please provide certificates for the https server!');
+  }
+
+  const options = {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath)
+  }
+
+  https.createServer(options, app).listen(APP_PORT, () => {
+    log.info('App started on port: %s with HTTPS', APP_PORT)
+  })
+} else {
+  app.listen(APP_PORT, () => {
+    log.info('App started on port: %s', APP_PORT)
+  })
+}
